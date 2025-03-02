@@ -1,25 +1,46 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css"; // Bootstrap for styling
-import "../styles/Auth.css"; // Import custom styles
+import "bootstrap/dist/css/bootstrap.min.css";
+import "../styles/Auth.css";
 
 const Signup = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(""); // To display errors
 
-  const handleSignup = (event) => {
+  const handleSignup = async (event) => {
     event.preventDefault();
-    navigate("/dashboard"); // Redirect to dashboard after signup
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token); // Store token
+        navigate("/dashboard"); // Redirect to Dashboard
+      } else {
+        setError(data.message || "Signup failed");
+      }
+    } catch (err) {
+      setError("Server error, please try again.");
+    }
   };
 
   return (
-    <div className="auth-container"> {/* Background Image applied */}
-      <div className="auth-card"> {/* Form container */}
+    <div className="auth-container">
+      <div className="auth-card">
         <h2 className="text-center fw-bold mb-4">Sign Up</h2>
+
+        {error && <div className="alert alert-danger">{error}</div>}
+
         <form onSubmit={handleSignup}>
-          {/* Full Name Input */}
           <div className="mb-3">
             <label className="form-label fw-semibold">Full Name</label>
             <input
@@ -32,7 +53,6 @@ const Signup = () => {
             />
           </div>
 
-          {/* Email Input */}
           <div className="mb-3">
             <label className="form-label fw-semibold">Email</label>
             <input
@@ -45,7 +65,6 @@ const Signup = () => {
             />
           </div>
 
-          {/* Password Input */}
           <div className="mb-3">
             <label className="form-label fw-semibold">Password</label>
             <input
@@ -58,11 +77,9 @@ const Signup = () => {
             />
           </div>
 
-          {/* Signup Button */}
           <button type="submit" className="btn btn-success w-100">Sign Up</button>
         </form>
 
-        {/* Already have an account? Link */}
         <p className="mt-3 text-center">
           Already have an account? <Link to="/">Login</Link>
         </p>

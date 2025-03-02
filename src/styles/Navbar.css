@@ -1,33 +1,44 @@
 .navbar {
-    display: flex;
-    justify-content: space-between; /* Push items apart */
-    align-items: center;
-    padding: 10px 15px;
-  }
-  
-  .navbar-title {
-    flex-grow: 1; /* Pushes the logout button to the right */
-    font-size: 48px;
-    font-weight: italic;
-  }
-  
-  .logout-btn {
-    margin-left: 20px; /* Extra spacing */
-    padding: 8px 16px;
-    font-size: 16px;
-  }
-  
-  .btn-danger {
-    margin-left: 80px; /* Add gap between title and button */
-  }
+  display: flex;
+  justify-content: space-between; /* Push items apart */
+  align-items: center;
+  padding: 10px 15px;
+}
 
-  .dashboard-container {
-    height: 100vh;
-    background-image: url("/images/dashboard-bg.jpg"); /* Path to your image */
-    background-size: cover; /* Cover entire screen */
-    background-position: center;
-    background-repeat: no-repeat;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+.navbar-title {
+  flex-grow: 1; /* Pushes the logout button to the right */
+  font-size: 48px;
+  font-weight: italic;
+}
+
+.logout-btn {
+  margin-left: 20px; /* Extra spacing */
+  padding: 8px 16px;
+  font-size: 16px;
+}
+
+.btn-danger {
+  margin-left: 80px; /* Add gap between title and button */
+}
+
+.dashboard-container {
+  height: 100vh;
+  background-image: url("/images/dashboard-bg.jpg"); /* Path to your image */
+  background-size: cover; /* Cover entire screen */
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nav-links {
+  display: flex;
+  justify-content: center; /* Center the buttons */
+  gap: 15px; /* Add spacing between buttons */
+  position: absolute;
+  bottom: -25px; /* Position at the bottom with some spacing */
+  left: 50%;
+  transform: translateX(-50%); /* Center align horizontally */
+  width: 100%;
+}
