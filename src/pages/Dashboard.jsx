@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 
 const Dashboard = () => {
   const navigate = useNavigate(); 
+  const [allProjects, setAllProjects] = useState([]);
   const [currentProjects, setCurrentProjects] = useState([]);
   const [upcomingDeadlines, setUpcomingDeadlines] = useState([]);
 
@@ -13,16 +14,12 @@ const Dashboard = () => {
     fetch("http://localhost:5000/api/projects") // Update URL based on your backend
       .then((response) => response.json())
       .then((data) => {
-        setCurrentProjects(data);
+        setAllProjects(data);
+        setCurrentProjects(data.filter(project => project.status === "On Going"));
 
-        // Extract upcoming deadlines
+        // Extract upcoming deadlines sorted by nearest date
         const upcomingTasks = data
-          .filter((project) => project.status === "On Going")
-          .map((project) => ({
-            id: project._id, // Use database ID
-            name: project.name,
-            endDate: project.endDate,
-          }))
+          .filter(project => project.status === "On Going" && project.endDate)
           .sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
 
         setUpcomingDeadlines(upcomingTasks);
@@ -50,11 +47,11 @@ const Dashboard = () => {
 
         <div 
           className="dashboard-section" 
-          onClick={() => navigate("/all-projects", { state: { currentProjects } })}
+          onClick={() => navigate("/all-projects", { state: { allProjects } })}
         >
           <h3>All Projects</h3>
           <p>Check the list of all projects here.</p>
-          <p><strong>{currentProjects.length}</strong> total projects.</p>
+          <p><strong>{allProjects.length}</strong> total projects.</p>
         </div>
 
         <div 

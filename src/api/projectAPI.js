@@ -6,9 +6,10 @@ const API_URL = "http://localhost:5000/api/projects"; // Backend API URL
 export const fetchProjects = async () => {
   try {
     const response = await axios.get(API_URL);
+    console.log("Projects fetched:", response.data); // ✅ Log Response
     return response.data;
   } catch (error) {
-    console.error("Error fetching projects:", error);
+    console.error("Error fetching projects:", error.response ? error.response.data : error.message);
     return [];
   }
 };

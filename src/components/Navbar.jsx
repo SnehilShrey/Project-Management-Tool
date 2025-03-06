@@ -8,15 +8,14 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      // Send logout request to backend (optional if session-based)
-      await axios.post("http://localhost:5000/api/logout");
+        await axios.post("http://localhost:5000/api/auth/logout", {}, { withCredentials: true });
 
-      // Redirect to login page
-      navigate("/login");
+        // Redirect to login page
+        navigate("/login");
     } catch (error) {
-      console.error("Logout failed:", error);
+        console.error("❌ Logout failed:", error);
     }
-  };
+};
 
   return (
     <nav className="navbar">

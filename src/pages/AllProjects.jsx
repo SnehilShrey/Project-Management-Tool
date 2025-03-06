@@ -1,47 +1,34 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Table, Button, Form } from "react-bootstrap";
 import PropTypes from "prop-types";
 import axios from "axios";
 
-const AllProjects = ({ currentProjects, setCurrentProjects }) => {
+const AllProjects = ({ projects = [], setProjects }) => {
   const [selectedProjects, setSelectedProjects] = useState(new Set());
 
-  // Fetch projects from the database when the component mounts
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/api/projects"); // GET request to fetch projects
-        setCurrentProjects(response.data);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      }
-    };
-    fetchProjects();
-  }, [setCurrentProjects]); // Runs only when setCurrentProjects changes
-
-  // Handle deletion of selected projects
+  // ✅ Handle bulk deletion of selected projects
   const handleDeleteSelected = async () => {
     if (selectedProjects.size === 0) return;
 
     try {
-      // Convert selected project indexes to their respective IDs
-      const projectsToDelete = [...selectedProjects].map(index => currentProjects[index]._id);
+      const projectsToDelete = [...selectedProjects].map(index => projects[index]?._id);
 
-      // Send DELETE request to remove selected projects
-      await axios.delete("http://localhost:5000/api/projects", { data: { projectIds: projectsToDelete } });
+      // ✅ Delete each project individually
+      await Promise.all(projectsToDelete.map(id => axios.delete(`http://localhost:5000/api/projects/${id}`)));
 
-      // Update state by filtering out deleted projects
-      setCurrentProjects(prevProjects => prevProjects.filter((_, index) => !selectedProjects.has(index)));
+      // ✅ Remove deleted projects from state
+      setProjects(prevProjects => prevProjects.filter(project => !projectsToDelete.includes(project._id)));
 
-      setSelectedProjects(new Set()); // Clear selection after deletion
+      setSelectedProjects(new Set()); // ✅ Clear selection after deletion
     } catch (error) {
       console.error("Error deleting projects:", error);
+      alert("Failed to delete projects. Please try again.");
     }
   };
 
-  // Toggle project selection
+  // ✅ Toggle project selection
   const toggleSelection = (index) => {
-    setSelectedProjects((prev) => {
+    setSelectedProjects(prev => {
       const newSelection = new Set(prev);
       newSelection.has(index) ? newSelection.delete(index) : newSelection.add(index);
       return newSelection;
@@ -65,18 +52,13 @@ const AllProjects = ({ currentProjects, setCurrentProjects }) => {
             <th>Select</th>
             <th>S. No.</th>
             <th>Project Name</th>
-            <th>Status</th>
-            <th>Deadline</th>
+            <th>Project Details</th>
           </tr>
         </thead>
         <tbody>
-          {currentProjects.length === 0 ? (
-            <tr>
-              <td colSpan="5" className="text-center">No Projects Available</td>
-            </tr>
-          ) : (
-            currentProjects.map((project, index) => (
-              <tr key={project._id}> {/* Using _id as key */}
+          {projects.length > 0 ? (
+            projects.map((project, index) => (
+              <tr key={project?._id || index}>
                 <td>
                   <Form.Check 
                     type="checkbox" 
@@ -85,11 +67,14 @@ const AllProjects = ({ currentProjects, setCurrentProjects }) => {
                   />
                 </td>
                 <td>{index + 1}</td>
-                <td>{project.name}</td>
-                <td>{project.status}</td>
-                <td>{project.deadline}</td>
+                <td>{project?.name || "N/A"}</td>
+                <td>{project?.details || "No details available"}</td>
               </tr>
             ))
+          ) : (
+            <tr>
+              <td colSpan="4" className="text-center">No Projects Available</td>
+            </tr>
           )}
         </tbody>
       </Table>
@@ -98,15 +83,14 @@ const AllProjects = ({ currentProjects, setCurrentProjects }) => {
 };
 
 AllProjects.propTypes = {
-  currentProjects: PropTypes.arrayOf(
+  projects: PropTypes.arrayOf(
     PropTypes.shape({
-      _id: PropTypes.string.isRequired, // Ensure each project has a unique ID
+      _id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      status: PropTypes.string.isRequired,
-      deadline: PropTypes.string.isRequired,
+      details: PropTypes.string,
     })
-  ).isRequired,
-  setCurrentProjects: PropTypes.func.isRequired,
+  ),
+  setProjects: PropTypes.func.isRequired,
 };
 
 export default AllProjects;

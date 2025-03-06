@@ -1,57 +1,41 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Table, Button, Form } from "react-bootstrap";
 import axios from "axios";
 import PropTypes from "prop-types";
 import "../styles/CurrentProjects.css";
 
-const CurrentProjectsTable = ({ onProjectAdd, onDeadlineUpdate }) => {
-    const [projects, setProjects] = useState([]);
+const CurrentProjects = ({ projects, setProjects }) => {
     const [selectedProjects, setSelectedProjects] = useState(new Set());
     const [expandedRows, setExpandedRows] = useState(new Set());
     const [newProject, setNewProject] = useState({ name: "", details: "", endDate: "", status: "On Going" });
 
-    // Fetch projects from the database when the component mounts
-    useEffect(() => {
-        const fetchProjects = async () => {
-            try {
-                const response = await axios.get("http://localhost:5000/api/projects"); // GET request
-                setProjects(response.data);
-            } catch (error) {
-                console.error("Error fetching projects:", error);
-            }
-        };
-        fetchProjects();
-    }, []);
-
-    // Handle adding a new project
     const handleAddProject = async () => {
         if (!newProject.name.trim() || !newProject.details.trim() || !newProject.endDate.trim()) return;
 
         try {
-            const response = await axios.post("http://localhost:5000/api/projects", newProject); // POST request
+            const response = await axios.post("http://localhost:5000/api/projects", newProject);
             setProjects([...projects, response.data]); // Update state with new project
-            setNewProject({ name: "", details: "", endDate: "", status: "On Going" }); // Reset input fields
+            setNewProject({ name: "", details: "", endDate: "", status: "On Going" });
         } catch (error) {
             console.error("Error adding project:", error);
         }
     };
 
-    // Handle deleting selected projects
     const handleDeleteProjects = async () => {
         if (selectedProjects.size === 0) return;
 
         try {
             const projectIdsToDelete = [...selectedProjects].map(index => projects[index]._id);
-            await axios.delete("http://localhost:5000/api/projects", { data: { projectIds: projectIdsToDelete } });
-
+            for (const projectId of projectIdsToDelete) {
+                await axios.delete(`http://localhost:5000/api/projects/${projectId}`);
+            }
             setProjects(prevProjects => prevProjects.filter((_, index) => !selectedProjects.has(index)));
-            setSelectedProjects(new Set()); // Clear selection
+            setSelectedProjects(new Set());
         } catch (error) {
             console.error("Error deleting projects:", error);
         }
     };
 
-    // Handle editing project details (auto-save)
     const handleEditProject = async (index, field, value) => {
         const updatedProjects = [...projects];
         updatedProjects[index][field] = value;
@@ -60,20 +44,18 @@ const CurrentProjectsTable = ({ onProjectAdd, onDeadlineUpdate }) => {
         try {
             await axios.put(`http://localhost:5000/api/projects/${projects[index]._id}`, {
                 [field]: value,
-            }); // PUT request to update field
+            });
         } catch (error) {
             console.error("Error updating project:", error);
         }
     };
 
-    // Toggle project selection
     const toggleProjectSelection = (index) => {
         const updatedSelection = new Set(selectedProjects);
         updatedSelection.has(index) ? updatedSelection.delete(index) : updatedSelection.add(index);
         setSelectedProjects(updatedSelection);
     };
 
-    // Toggle expanding details row
     const toggleExpandRow = (index) => {
         const updatedExpandedRows = new Set(expandedRows);
         updatedExpandedRows.has(index) ? updatedExpandedRows.delete(index) : updatedExpandedRows.add(index);
@@ -108,7 +90,7 @@ const CurrentProjectsTable = ({ onProjectAdd, onDeadlineUpdate }) => {
                                 <td><Form.Check type="checkbox" checked={selectedProjects.has(index)} onChange={() => toggleProjectSelection(index)} /></td>
                                 <td>{index + 1}</td>
                                 <td><Form.Control type="text" value={project.name} onChange={(e) => handleEditProject(index, "name", e.target.value)} /></td>
-                                <td><Form.Control type="date" value={project.endDate} min={new Date().toISOString().split("T")[0]} onChange={(e) => handleEditProject(index, "endDate", e.target.value)} /></td>
+                                <td><Form.Control type="date" value={project.endDate.split("T")[0]} min={new Date().toISOString().split("T")[0]} onChange={(e) => handleEditProject(index, "endDate", e.target.value)} /></td>
                                 <td>
                                     <Form.Select value={project.status} onChange={(e) => handleEditProject(index, "status", e.target.value)}>
                                         <option value="On Going">On Going</option>
@@ -130,9 +112,9 @@ const CurrentProjectsTable = ({ onProjectAdd, onDeadlineUpdate }) => {
     );
 };
 
-CurrentProjectsTable.propTypes = {
-    onProjectAdd: PropTypes.func.isRequired,
-    onDeadlineUpdate: PropTypes.func.isRequired,
+CurrentProjects.propTypes = {
+    projects: PropTypes.array.isRequired,
+    setProjects: PropTypes.func.isRequired,
 };
 
-export default CurrentProjectsTable;
+export default CurrentProjects;
