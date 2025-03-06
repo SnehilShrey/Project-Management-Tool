@@ -27,20 +27,41 @@ router.post("/signup", async (req, res) => {
 // User Login
 router.post("/login", async (req, res) => {
     try {
+        console.log("Login Request Body:", req.body); // Log incoming request
+
         const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ error: "Email and password are required!" });
+        }
 
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ message: "Invalid Credentials" });
+        if (!user) {
+            return res.status(400).json({ error: "User not found!" });
+        }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: "Invalid Credentials" });
+        if (!isMatch) {
+            return res.status(400).json({ error: "Invalid password!" });
+        }
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-        res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
-    } catch (error) {
-        res.status(500).json({ message: "Server Error" });
+        const token = jwt.sign({ id: user._id }, "your_secret_key", { expiresIn: "1h" });
+        res.json({ token });
+    } catch (err) {
+        console.error("Login Error:", err);  // Log backend error
+        res.status(500).json({ error: "Server error, please try again later!" });
     }
 });
 
+// Logout Route
+router.post("/logout", (req, res) => {
+    try {
+      res.clearCookie("token");
+      res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+      console.error("Error during logout:", error);
+      res.status(500).json({ message: "Logout failed" });
+    }
+  });
+
 module.exports = router;
+
